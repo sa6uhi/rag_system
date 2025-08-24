@@ -11,6 +11,12 @@ A Retrieval-Augmented Generation (RAG) system for answering questions about the 
 - Web interface for easy interaction
 - CLI mode for quick queries
 
+## Prerequisites
+
+- Docker and Docker Compose (for Docker deployment)
+- Python 3.12+ (for local deployment)
+- Google Gemini API key
+
 ## Project Structure
 
 ```
@@ -22,10 +28,35 @@ rag_system/
 ├── web/           # Web interface
 ├── config.py      # Configuration
 ├── main.py        # Main application entry point
-└── requirements.txt # Python dependencies
+├── requirements.txt # Python dependencies
+├── Dockerfile     # Docker configuration
+├── docker-compose.yml # Docker Compose configuration
+└── README.md      # This file
 ```
 
-## Installation
+## Quick Start with Docker
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd rag_system
+```
+
+2. Set up your Google Gemini API key:
+```bash
+echo "GEMINI_API_KEY=your_actual_api_key_here" > .env
+```
+
+3. Build and run the Docker containers:
+```bash
+docker-compose up --build
+```
+
+4. Access the application:
+- Web Interface: http://localhost:5000
+- API Documentation: http://localhost:5000/docs (when available)
+
+## Local Installation (without Docker)
 
 1. Install Python dependencies:
 ```bash
@@ -114,6 +145,43 @@ To extend the system:
 2. Improve the vector store in `rag/vector_store.py`
 3. Enhance the RAG engine in `rag/engine.py`
 4. Extend the API in `api/app.py`
+
+## Docker Deployment
+
+To build and run the application using Docker:
+
+```bash
+docker-compose up --build
+```
+
+To run in detached mode:
+```bash
+docker-compose up --build -d
+```
+
+To stop the containers:
+```bash
+docker-compose down
+```
+
+## Configuration
+
+The system can be configured through environment variables:
+
+- `GEMINI_API_KEY` - Google Gemini API key
+- `FLASK_ENV` - Flask environment (development/production)
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. Ensure your API key is correct and has proper permissions
+2. Check that all required files are present in the `data` directory
+3. Verify Docker has sufficient resources allocated
+4. Check the logs for error messages:
+   ```bash
+   docker-compose logs
+   ```
 
 ## License
 

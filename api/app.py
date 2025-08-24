@@ -17,14 +17,31 @@ def serve_web_interface():
     """Serve the main web interface"""
     return send_from_directory('../web', 'index.html')
 
+@app.route('/<path:path>')
+def serve_static_files(path):
+    """Serve static files"""
+    try:
+        return send_from_directory('../web', path)
+    except FileNotFoundError:
+        return jsonify({'error': 'File not found'}), 404
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    return jsonify({
-        'status': 'healthy',
-        'service': 'legal-rag-api',
-        'document_stats': rag_engine.get_document_stats()
-    })
+    try:
+        stats = rag_engine.get_document_stats()
+        return jsonify({
+            'status': 'healthy',
+            'service': 'legal-rag-api',
+            'document_stats': stats
+        })
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            'status': 'unhealthy',
+            'service': 'legal-rag-api',
+            'error': str(e)
+        }), 500
 
 @app.route('/query', methods=['POST'])
 def query_documents():
@@ -110,4 +127,4 @@ def search_documents():
         }), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)

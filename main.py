@@ -76,7 +76,7 @@ def main():
                     
     elif args.mode == 'api':
         logger.info("Starting API server on http://localhost:5000")
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=5000, debug=False)
         
     elif args.mode == 'web':
         logger.info("Starting web interface...")

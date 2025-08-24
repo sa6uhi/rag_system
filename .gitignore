@@ -15,5 +15,3 @@ dist/
 .idea/
 
 .DS_Store
-
-setup.sh
