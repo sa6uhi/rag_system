@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azərbaycan Cinayət Məcəlləsi - RAG Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            background-color: white;
+            margin-bottom: 1rem;
+        }
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        .bot-message {
+            background-color: #f5f5f5;
+            border-left: 4px solid #4caf50;
+        }
+        .source-tag {
+            font-size: 0.8rem;
+            background-color: #e0e0e0;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+            margin-right: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1 class="text-center">Azərbaycan Cinayət Məcəlləsi - RAG Sistemi</h1>
+            <p class="text-center mb-0">Hüquqi suallarınıza dəqiq cavablar</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Hüquqi Kömək Botu</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="chatContainer" class="chat-container">
+                            <div class="message bot-message">
+                                <strong>Hüquq Botu:</strong>
+                                <p class="mb-0">Salam! Mən Azərbaycan Cinayət Məcəlləsi haqqında suallarınıza cavab vermək üçün buradayam. Hansı sual üzrə kömək edə bilərəm?</p>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" id="questionInput" class="form-control" placeholder="Sualınızı yazın...">
+                            <button class="btn btn-primary" type="button" id="askButton">Soruş</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tez-tez soruşulan suallar</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-secondary question-example" type="button" data-question="Cinayət törətmək üçün hansı şərtlər vardır?">
+                                Cinayət törətmək üçün hansı şərtlər vardır?
+                            </button>
+                            <button class="btn btn-outline-secondary question-example" type="button" data-question="İştirakçılıq nədir və necə cəzalandırılır?">
+                                İştirakçılıq nədir və necə cəzalandırılır?
+                            </button>
+                            <button class="btn btn-outline-secondary question-example" type="button" data-question="Zəruri müdafiə nədir?">
+                                Zəruri müdafiə nədir?
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // DOM Elements
+        const chatContainer = document.getElementById('chatContainer');
+        const questionInput = document.getElementById('questionInput');
+        const askButton = document.getElementById('askButton');
+        const questionExamples = document.querySelectorAll('.question-example');
+
+        // Add message to chat
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            const sender = isUser ? 'Siz:' : 'Hüquq Botu:';
+            messageDiv.innerHTML = `<strong>${sender}</strong><p class="mb-0">${text}</p>`;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Show loading message
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot-message';
+            loadingDiv.id = 'loadingMessage';
+            loadingDiv.innerHTML = '<strong>Hüquq Botu:</strong><p class="mb-0">Cavab hazırlanır...</p>';
+            chatContainer.appendChild(loadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Hide loading message
+        function hideLoading() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
+        // Query the API
+        async function queryAPI(question) {
+            try {
+                showLoading();
+                
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                hideLoading();
+                
+                // Add bot response
+                addMessage(data.answer);
+                
+                // Add sources if available
+                if (data.relevant_documents && data.relevant_documents.length > 0) {
+                    let sourcesText = '<strong>Mənbələr:</strong><br>';
+                    data.relevant_documents.slice(0, 3).forEach((result, index) => {
+                        const doc = result.document;
+                        const score = result.similarity_score;
+                        sourcesText += `<span class="source-tag">Mənbə #${index+1} (${(score*100).toFixed(1)}%)</span> `;
+                        if (doc.metadata.article_number) {
+                            sourcesText += `Məqalə ${doc.metadata.article_number}: `;
+                        }
+                        sourcesText += `${doc.content.substring(0, 100)}...<br>`;
+                    });
+                    
+                    const sourcesDiv = document.createElement('div');
+                    sourcesDiv.className = 'message bot-message';
+                    sourcesDiv.innerHTML = sourcesText;
+                    chatContainer.appendChild(sourcesDiv);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error:', error);
+                addMessage('Üzr istəyirik, xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.');
+            }
+        }
+
+        // Handle ask button click
+        askButton.addEventListener('click', async () => {
+            const question = questionInput.value.trim();
+            if (question) {
+                // Add user question
+                addMessage(question, true);
+                questionInput.value = '';
+                
+                // Query API
+                await queryAPI(question);
+            }
+        });
+
+        // Handle Enter key press
+        questionInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                askButton.click();
+            }
+        });
+
+        // Handle example question clicks
+        questionExamples.forEach(button => {
+            button.addEventListener('click', async () => {
+                const question = button.getAttribute('data-question');
+                questionInput.value = question;
+                askButton.click();
+            });
+        });
+    </script>
+</body>
+</html>
