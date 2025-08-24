@@ -4,18 +4,14 @@ from flask_cors import CORS
 from rag.engine import get_rag_engine
 import logging
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create Flask app
 app = Flask(__name__, static_folder='../web', static_url_path='')
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# Initialize RAG engine
 rag_engine = get_rag_engine()
 
-# Serve the web interface
 @app.route('/')
 def serve_web_interface():
     """Serve the main web interface"""
@@ -34,7 +30,6 @@ def health_check():
 def query_documents():
     """Query legal documents endpoint"""
     try:
-        # Get request data
         data = request.get_json()
         
         if not data or 'question' not in data:
@@ -45,13 +40,10 @@ def query_documents():
         question = data['question']
         top_k = data.get('top_k', 5)
         
-        # Search for relevant documents
         search_results = rag_engine.search_documents(question, top_k)
         
-        # Generate answer
         answer = rag_engine.generate_answer(question, search_results)
         
-        # Format results
         formatted_results = [
             {
                 'document': {
@@ -81,7 +73,6 @@ def query_documents():
 def search_documents():
     """Search documents endpoint"""
     try:
-        # Get request data
         data = request.get_json()
         
         if not data or 'query' not in data:
@@ -92,10 +83,8 @@ def search_documents():
         query = data['query']
         top_k = data.get('top_k', 5)
         
-        # Search for relevant documents
         search_results = rag_engine.search_documents(query, top_k)
         
-        # Format results
         formatted_results = [
             {
                 'document': {

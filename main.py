@@ -7,7 +7,6 @@ import sys
 import os
 import logging
 
-# Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from rag.engine import get_rag_engine
@@ -16,7 +15,6 @@ import webbrowser
 import threading
 import time
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -30,7 +28,7 @@ def run_web_interface():
 
 def open_browser():
     """Open browser after a delay"""
-    time.sleep(2)  # Wait for server to start
+    time.sleep(2)
     webbrowser.open('http://localhost:5000')
 
 def main():
@@ -42,7 +40,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Initialize RAG engine
     logger.info("Initializing RAG engine...")
     rag_engine = get_rag_engine()
     
@@ -52,13 +49,11 @@ def main():
     
     if args.mode == 'cli':
         if args.question:
-            # Process single question
             logger.info(f"Processing question: {args.question}")
             answer = rag_engine.generate_answer(args.question)
             print(f"\nQuestion: {args.question}")
             print(f"\nAnswer: {answer}")
         else:
-            # Interactive CLI mode
             print("Legal RAG System - Azerbaijani Criminal Law")
             print("=" * 50)
             print("Type your questions or 'quit' to exit")
@@ -80,25 +75,20 @@ def main():
                     print(f"Error: {e}")
                     
     elif args.mode == 'api':
-        # Run API server
         logger.info("Starting API server on http://localhost:5000")
         app.run(host='0.0.0.0', port=5000, debug=True)
         
     elif args.mode == 'web':
-        # Run web interface
         logger.info("Starting web interface...")
         
-        # Start server in background thread
         server_thread = threading.Thread(target=run_web_interface)
         server_thread.daemon = True
         server_thread.start()
         
-        # Open browser
         browser_thread = threading.Thread(target=open_browser)
         browser_thread.daemon = True
         browser_thread.start()
         
-        # Keep main thread alive
         try:
             while True:
                 time.sleep(1)

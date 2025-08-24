@@ -13,8 +13,8 @@ class VectorStore:
     def __init__(self):
         self.vectorizer = TfidfVectorizer(
             max_features=10000,
-            stop_words=None,  # We don't want to remove stopwords for legal text
-            ngram_range=(1, 2)  # Use both unigrams and bigrams
+            stop_words=None,
+            ngram_range=(1, 2)
         )
         self.document_vectors = None
         self.documents = []
@@ -26,7 +26,6 @@ class VectorStore:
         self.documents = documents
         contents = [doc['content'] for doc in documents]
         
-        # Fit the vectorizer and transform documents
         self.document_vectors = self.vectorizer.fit_transform(contents)
         
         logger.info(f"Vector store updated with {len(documents)} documents")
@@ -37,20 +36,15 @@ class VectorStore:
             logger.warning("No documents in vector store")
             return []
             
-        # Transform query
         query_vector = self.vectorizer.transform([query])
         
-        # Calculate cosine similarities
         similarities = cosine_similarity(query_vector, self.document_vectors).flatten()
         
-        # Get top-k results above threshold
         valid_indices = np.where(similarities >= threshold)[0]
         valid_similarities = similarities[valid_indices]
         
-        # Sort by similarity
         sorted_indices = valid_indices[np.argsort(valid_similarities)[::-1]]
         
-        # Return top-k results
         results = []
         for i, idx in enumerate(sorted_indices[:top_k]):
             if i < len(self.documents):
@@ -63,10 +57,8 @@ class VectorStore:
         return len(self.documents) if self.documents else 0
 
 if __name__ == "__main__":
-    # Test the vector store
     vector_store = VectorStore()
     
-    # Sample documents
     sample_docs = [
         {
             'id': '1',
@@ -84,7 +76,6 @@ if __name__ == "__main__":
     
     vector_store.add_documents(sample_docs)
     
-    # Search test
     results = vector_store.search('cinayət törətmək')
     print(f"Found {len(results)} results")
     for doc, score in results:

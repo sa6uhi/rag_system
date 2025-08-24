@@ -17,7 +17,6 @@ class RAGEngine:
         self.vector_store = VectorStore()
         self.model = None
         
-        # Initialize Gemini
         if self.config.GEMINI_API_KEY:
             genai.configure(api_key=self.config.GEMINI_API_KEY)
             self.model = genai.GenerativeModel('gemini-2.0-flash')
@@ -25,17 +24,14 @@ class RAGEngine:
         else:
             logger.warning("Gemini API key not found. RAG engine will work in fallback mode.")
             
-        # Load and index documents
         self._initialize_documents()
         
     def _initialize_documents(self) -> None:
         """Load and index legal documents"""
         logger.info("Initializing legal documents...")
         
-        # Load documents
         documents = self.processor.load_documents()
         
-        # Add to vector store
         self.vector_store.add_documents(documents)
         
         logger.info(f"Indexed {self.vector_store.get_document_count()} documents")
@@ -56,16 +52,13 @@ class RAGEngine:
         if context_docs is None:
             context_docs = self.search_documents(query)
             
-        # Prepare context
         context_text = "\n\n".join([
             f"[Mənbə #{i+1} (Uyğunluq: {score:.2f})]\n{doc['content']}" 
             for i, (doc, score) in enumerate(context_docs)
         ])
         
-        # Create prompt
         prompt = self._create_prompt(query, context_text)
         
-        # Generate response
         if self.model:
             try:
                 response = self.model.generate_content(prompt)
@@ -115,7 +108,6 @@ Tapılan məlumatlar:
             'total_documents': self.vector_store.get_document_count()
         }
 
-# Global instance
 rag_engine = None
 
 def get_rag_engine() -> RAGEngine:
@@ -126,21 +118,17 @@ def get_rag_engine() -> RAGEngine:
     return rag_engine
 
 if __name__ == "__main__":
-    # Test the RAG engine
     engine = get_rag_engine()
     
     print("RAG Engine initialized")
     stats = engine.get_document_stats()
     print(f"Document stats: {stats}")
     
-    # Test query
     test_query = "Cinayət törətmək üçün hansı şərtlər vardır?"
     print(f"\nTest query: {test_query}")
     
-    # Search documents
     results = engine.search_documents(test_query)
     print(f"Found {len(results)} relevant documents")
     
-    # Generate answer
     answer = engine.generate_answer(test_query, results)
     print(f"\nGenerated answer:\n{answer}")
