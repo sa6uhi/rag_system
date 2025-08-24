@@ -82,6 +82,11 @@ class LegalDocumentProcessor:
                                 article_content = article_heading + "\n"
                                 if 'content' in article:
                                     article_content += "\n".join(article['content'])
+                                else:
+
+                                    for key, value in article.items():
+                                        if key not in ['article_number', 'article_heading'] and isinstance(value, str):
+                                            article_content += "\n" + value
                                     
                                 documents.append({
                                     'id': article_id,

@@ -30,7 +30,7 @@ class VectorStore:
         
         logger.info(f"Vector store updated with {len(documents)} documents")
         
-    def search(self, query: str, top_k: int = 5, threshold: float = 0.1) -> List[Tuple[Dict, float]]:
+    def search(self, query: str, top_k: int = 5, threshold: float = 0.01) -> List[Tuple[Dict, float]]:
         """Search for relevant documents based on query"""
         if self.document_vectors is None or len(self.documents) == 0:
             logger.warning("No documents in vector store")
@@ -40,16 +40,18 @@ class VectorStore:
         
         similarities = cosine_similarity(query_vector, self.document_vectors).flatten()
         
-        valid_indices = np.where(similarities >= threshold)[0]
-        valid_similarities = similarities[valid_indices]
+        logger.info(f"Query: {query}")
+        logger.info(f"Similarities range: [{np.min(similarities):.4f}, {np.max(similarities):.4f}]")
+        logger.info(f"Threshold: {threshold}")
         
-        sorted_indices = valid_indices[np.argsort(valid_similarities)[::-1]]
-        
+        top_indices = np.argsort(similarities)[::-1][:top_k]
         results = []
-        for i, idx in enumerate(sorted_indices[:top_k]):
-            if i < len(self.documents):
+        
+        for idx in top_indices:
+            if similarities[idx] >= threshold or similarities[idx] > 0.001:
                 results.append((self.documents[idx], similarities[idx]))
                 
+        logger.info(f"Returning {len(results)} documents")
         return results
         
     def get_document_count(self) -> int:

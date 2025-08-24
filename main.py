@@ -6,6 +6,7 @@ import argparse
 import sys
 import os
 import logging
+import subprocess
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,6 +26,17 @@ def run_web_interface():
     """Run the web interface"""
     logger.info("Starting web interface...")
     app.run(host='0.0.0.0', port=5000, debug=False)
+
+def run_api_server():
+    """Run the API server with Gunicorn"""
+    logger.info("Starting API server with Gunicorn on http://localhost:5000")
+
+    subprocess.run([
+        "gunicorn", 
+        "--bind", "0.0.0.0:5000", 
+        "--workers", "1", 
+        "api.app:app"
+    ])
 
 def open_browser():
     """Open browser after a delay"""
@@ -75,8 +87,7 @@ def main():
                     print(f"Error: {e}")
                     
     elif args.mode == 'api':
-        logger.info("Starting API server on http://localhost:5000")
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        run_api_server()
         
     elif args.mode == 'web':
         logger.info("Starting web interface...")

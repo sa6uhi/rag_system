@@ -10,7 +10,15 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, static_folder='../web', static_url_path='')
 CORS(app)
 
-rag_engine = get_rag_engine()
+rag_engine = None
+
+def get_rag_engine_instance():
+    """Lazy initialization of RAG engine"""
+    global rag_engine
+    if rag_engine is None:
+        logger.info("Initializing RAG engine...")
+        rag_engine = get_rag_engine()
+    return rag_engine
 
 @app.route('/')
 def serve_web_interface():
@@ -29,6 +37,7 @@ def serve_static_files(path):
 def health_check():
     """Health check endpoint"""
     try:
+        rag_engine = get_rag_engine_instance()
         stats = rag_engine.get_document_stats()
         return jsonify({
             'status': 'healthy',
@@ -47,6 +56,7 @@ def health_check():
 def query_documents():
     """Query legal documents endpoint"""
     try:
+        rag_engine = get_rag_engine_instance()
         data = request.get_json()
         
         if not data or 'question' not in data:
@@ -90,6 +100,7 @@ def query_documents():
 def search_documents():
     """Search documents endpoint"""
     try:
+        rag_engine = get_rag_engine_instance()
         data = request.get_json()
         
         if not data or 'query' not in data:
@@ -127,4 +138,4 @@ def search_documents():
         }), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000)

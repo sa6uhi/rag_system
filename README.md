@@ -14,24 +14,27 @@ A Retrieval-Augmented Generation (RAG) system for answering questions about the 
 ## Prerequisites
 
 - Docker and Docker Compose (for Docker deployment)
-- Python 3.12+ (for local deployment)
+- Python 3.11+ (for local deployment)
 - Google Gemini API key
 
 ## Project Structure
 
 ```
 rag_system/
-├── api/           # Flask REST API
-├── data/          # Legal documents (JSON files)
-├── processing/    # Document processing modules
-├── rag/           # RAG engine components
-├── web/           # Web interface
-├── config.py      # Configuration
-├── main.py        # Main application entry point
-├── requirements.txt # Python dependencies
-├── Dockerfile     # Docker configuration
+├── api/              # Flask REST API
+├── data/             # Legal documents (JSON files)
+├── processing/       # Document processing modules
+├── rag/              # RAG engine components
+├── web/              # Web interface
+├── config.py         # Configuration
+├── main.py           # Main application entry point
+├── wsgi.py           # WSGI entry point for Gunicorn
+├── requirements.txt  # Python dependencies
+├── Dockerfile        # Docker configuration
 ├── docker-compose.yml # Docker Compose configuration
-└── README.md      # This file
+├── run_api.sh        # Script to run API with Gunicorn
+├── setup.sh          # Setup script
+└── README.md         # This file
 ```
 
 ## Quick Start with Docker
@@ -88,7 +91,17 @@ python main.py --mode cli --question "Cinayət törətmək üçün hansı şərt
 
 ### REST API
 
-Start the API server:
+Start the API server using Gunicorn (recommended for production):
+```bash
+gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:application
+```
+
+Or use the provided script:
+```bash
+./run_api.sh
+```
+
+Or start the API server using the main script:
 ```bash
 python main.py --mode api
 ```
@@ -182,6 +195,15 @@ If you encounter issues:
    ```bash
    docker-compose logs
    ```
+
+## Production Deployment
+
+For production deployment, the system uses Gunicorn as the WSGI server, which provides better performance and stability compared to Flask's development server.
+
+To run with custom Gunicorn settings:
+```bash
+gunicorn --bind 0.0.0.0:5000 --workers 1 --timeout 120 --keep-alive 5 wsgi:application
+```
 
 ## License
 

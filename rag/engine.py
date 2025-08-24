@@ -53,7 +53,7 @@ class RAGEngine:
             context_docs = self.search_documents(query)
             
         context_text = "\n\n".join([
-            f"[Mənbə #{i+1} (Uyğunluq: {score:.2f})]\n{doc['content']}" 
+            f"[Mənbə #{i+1} (Uyğunluq: {score:.2f})]\nID: {doc['id']}\nNöv: {doc['type']}\nMəzmun: {doc['content']}\nMetadata: {doc['metadata']}" 
             for i, (doc, score) in enumerate(context_docs)
         ])
         
@@ -83,9 +83,11 @@ Təlimatlar:
 1. Cavabınızı yalnız verilmiş mənbələrə əsasən verin
 2. Cavabınız Azərbaycan dilində olmalıdır
 3. Mümkün qədər dəqiq və ətraflı olun
-4. Mənbələri göstərin (məsələn: "Mənbə #1-ə əsasən...")
-5. Əgər cavab mənbələrdə yoxdursa, bunu bildirin
-6. Hər bir məqaləni və ya bəndi dəqiq göstərin
+4. Mənbələri göstərin (məsələn: "Maddə 1.1-ə əsasən...")
+5. Əgər cavab mənbələrdə tamamilə yoxdursa, lakin bəzi əlaqəli məlumatlar varsa, bu məlumatları təqdim edin və çatışmadığını bildirin
+6. Əgər mənbələrdə heç bir əlaqəli məlumat yoxdursa, "Mənbələrdə bu suala cavab tapılmadı" deyin
+7. Hər bir məqaləni və ya bəndi dəqiq göstərin
+8. Əgər suala tam cavab yoxdursa, ən yaxın məlumatları təqdim edin
 
 Cavab:"""
         
@@ -93,6 +95,18 @@ Cavab:"""
         
     def _fallback_response(self, query: str, context: str) -> str:
         """Fallback response when LLM is not available"""
+        if len(context.strip()) < 50:
+            return f"""Hazırda sualınıza dəqiq cavab tapa bilmədik. Bu, aşağıdakı səbəblərdən biri ola bilər:
+
+1. Sualınızla əlaqəli məlumat mənbələrimizdə mövcud deyil
+2. Sualınızın ifadəsi mənbələrdə istifadə olunan terminlərdən fərqlidir
+
+Təkliflərimiz:
+- Sualınızı fərqli şəkildə ifadə etməyinizi tövsiyyə edirik
+- Məsələn, "cinayət törətmək" əvəzinə "cinayətin tərkibi" və ya konkret məqalələri qeyd etməyinizi tövsiyyə edirik
+
+Əgər hüquqi məsləhət lazımdırsa, hüquq mütəxəssisinə müraciət etməyinizi tövsiyyə edirik."""
+
         return f"""Təəssüf ki, hazırda cavab yaratmaq mümkün deyil. Ancaq verilən sual üzrə mənbələrdən tapılan məlumatlar:
 
 Sual: {query}
