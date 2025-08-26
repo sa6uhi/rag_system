@@ -16,5 +16,4 @@ dist/
 
 .DS_Store
 
-test_improvements.py
 debug_test.py
